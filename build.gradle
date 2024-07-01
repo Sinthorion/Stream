@@ -1,0 +1,53 @@
+plugins {
+    id 'java'
+    id 'application'
+}
+
+apply plugin: 'application'
+
+run.doFirst {
+    println "Running Java version ${JavaVersion.current().toString()}"
+    println "Running with JVM arguments: ${applicationDefaultJvmArgs}"
+}
+
+application {
+    mainClass = "sinthorion.stream.Main"
+    applicationDefaultJvmArgs = ["--add-opens", "java.base/java.util.stream=ALL-UNNAMED"]
+}
+
+group = 'org.example'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "PASSED", "SKIPPED", "FAILED", "STANDARD_OUT", "STANDARD_ERROR"
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        debug {
+            events "STARTED", "FAILED", "PASSED", "SKIPPED", "STANDARD_ERROR", "STANDARD_OUT"
+        }
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = '|  ', endItem = '  |'
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println('\n' + ('-' * repeatLength) + '\n' + startItem + output + endItem + '\n' + ('-' * repeatLength))
+            }
+        }
+    }
+}
